@@ -1,0 +1,230 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// Enums
+// -------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum CommunityType {
+  UNIVERSITY
+  DORM
+  CONDO
+  COMMUNITY
+}
+
+enum ItemType {
+  SALE
+  RENTAL
+  BOTH
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ItemStatus {
+  AVAILABLE
+  RENTED
+  SOLD
+  UNAVAILABLE
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ReportStatus {
+  PENDING
+  INVESTIGATING
+  RESOLVED
+  DISMISSED
+}
+
+// -------------------------------------------------------------
+// Models
+// -------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  passwordHash String
+  phone        String?
+  avatarUrl    String?
+  role         UserRole  @default(MEMBER)
+  communityId  String?
+  community    Community? @relation(fields: [communityId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  items            Item[]    @relation("UserItems")
+  bookings         Booking[] @relation("RenterBookings")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  reviewsGiven     Review[]  @relation("ReviewsGiven")
+  reviewsReceived  Review[]  @relation("ReviewsReceived")
+  reports          Report[]  @relation("Reporter")
+  favorites        Favorite[]
+}
+
+model Community {
+  id        String        @id @default(cuid())
+  name      String
+  type      CommunityType
+  location  String?
+  createdAt DateTime      @default(now())
+
+  // Relations
+  users User[]
+  items Item[]
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String @unique
+
+  // Relations
+  items Item[]
+}
+
+model Item {
+  id                 String        @id @default(cuid())
+  title              String
+  description        String
+  type               ItemType
+  price              Float?
+  rentalPricePerDay  Float?
+  depositAmount      Float?
+  condition          ItemCondition
+  status             ItemStatus    @default(AVAILABLE)
+  ownerId            String
+  owner              User          @relation("UserItems", fields: [ownerId], references: [id])
+  categoryId         String
+  category           Category      @relation(fields: [categoryId], references: [id])
+  communityId        String?
+  community          Community?    @relation(fields: [communityId], references: [id])
+  pickupLocation     String?
+  deletedAt          DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  // Relations
+  images    ItemImage[]
+  bookings  Booking[]
+  messages  Message[]
+  favorites Favorite[]
+  reports   Report[]
+}
+
+model ItemImage {
+  id     String @id @default(cuid())
+  url    String
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  itemId     String
+  item       Item          @relation(fields: [itemId], references: [id])
+  renterId   String
+  renter     User          @relation("RenterBookings", fields: [renterId], references: [id])
+  startDate  DateTime
+  endDate    DateTime
+  totalPrice Float
+  deposit    Float?
+  status     BookingStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Relations
+  payments Payment[]
+  reviews  Review[]
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  bookingId String
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount    Float
+  status    PaymentStatus @default(PENDING)
+  method    String
+  createdAt DateTime      @default(now())
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  itemId     String
+  item       Item     @relation(fields: [itemId], references: [id])
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  rating      Int
+  comment     String?
+  reviewerId  String
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  revieweeId  String
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([bookingId, reviewerId])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reason     String
+  status     ReportStatus @default(PENDING)
+  reporterId String
+  reporter   User         @relation("Reporter", fields: [reporterId], references: [id])
+  itemId     String
+  item       Item         @relation(fields: [itemId], references: [id])
+  createdAt  DateTime     @default(now())
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+}
