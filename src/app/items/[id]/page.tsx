@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma"
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
+import BookingWidget from "@/components/BookingWidget"
 import { notFound } from "next/navigation"
 import { getConditionLabel as getCondLabel } from "@/components/ItemCard"
 import { MapPin, Phone, Mail, Calendar, Sparkles, Shield, User, Info, ArrowLeft, MessageCircle, ShoppingBag } from "lucide-react"
@@ -156,48 +157,11 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
                 
                 {/* 1. If it's a rental / both */}
                 {(item.type === "RENTAL" || item.type === "BOTH") && (
-                  <div className="flex flex-col gap-4 p-4 rounded-2xl bg-emerald-50/40 border border-emerald-100/60">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-xs font-bold text-emerald-800">อัตราค่าเช่าสินค้า</span>
-                      <div>
-                        <span className="text-2xl font-black text-emerald-600">฿{item.rentalPricePerDay}</span>
-                        <span className="text-xs text-gray-500 font-semibold"> / วัน</span>
-                      </div>
-                    </div>
-
-                    {item.depositAmount && (
-                      <div className="flex justify-between items-center text-xs border-t border-emerald-100/60 pt-3">
-                        <span className="font-semibold text-emerald-800">ค่ามัดจำสินค้า (ได้รับคืนหลังเช่าเสร็จ)</span>
-                        <span className="font-extrabold text-emerald-600">฿{item.depositAmount}</span>
-                      </div>
-                    )}
-
-                    {/* Booking Dates Inputs */}
-                    <div className="flex flex-col gap-3 mt-2 border-t border-emerald-100/60 pt-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider">วันเริ่มต้น</label>
-                          <input
-                            type="date"
-                            className="h-9 px-3 rounded-lg border border-emerald-200/60 bg-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500 text-gray-700"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider">วันสิ้นสุด</label>
-                          <input
-                            type="date"
-                            className="h-9 px-3 rounded-lg border border-emerald-200/60 bg-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500 text-gray-700"
-                          />
-                        </div>
-                      </div>
-
-                      <button className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-100 transition-colors flex items-center justify-center gap-2 mt-2">
-                        <Calendar className="h-4.5 w-4.5" />
-                        <span>จองเช่าสินค้าทันที</span>
-                      </button>
-                    </div>
-
-                  </div>
+                  <BookingWidget
+                    itemId={item.id}
+                    rentalPricePerDay={item.rentalPricePerDay!}
+                    depositAmount={item.depositAmount}
+                  />
                 )}
 
                 {/* 2. Divider if Both */}

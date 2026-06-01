@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { auth } from "@/auth"
-import { handleSignOut } from "@/app/actions/auth"
-import { Search, LogIn, UserPlus, LogOut, Infinity, ShoppingBag } from "lucide-react"
+import UserDropdown from "@/components/UserDropdown"
+import { Search, LogIn, UserPlus, Infinity, ShoppingBag } from "lucide-react"
 
 export default async function Navbar() {
   const session = await auth()
@@ -50,35 +50,7 @@ export default async function Navbar() {
             <div className="h-4 w-px bg-gray-200" />
 
             {user ? (
-              <div className="flex items-center gap-4">
-                {/* User Info */}
-                <div className="flex items-center gap-2.5">
-                  <img
-                    src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=placeholder"}
-                    alt={user.name || "User"}
-                    className="h-8 w-8 rounded-full border border-indigo-100 shadow-sm object-cover"
-                  />
-                  <div className="hidden sm:flex flex-col text-left">
-                    <span className="text-sm font-semibold text-gray-800 leading-tight">
-                      {user.name}
-                    </span>
-                    <span className="text-xs font-medium text-gray-400">
-                      {user.role === "ADMIN" ? "ผู้ดูแลระบบ" : "สมาชิก"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Sign Out Form */}
-                <form action={handleSignOut}>
-                  <button
-                    type="submit"
-                    className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
-                    title="ออกจากระบบ"
-                  >
-                    <LogOut className="h-4.5 w-4.5" />
-                  </button>
-                </form>
-              </div>
+              <UserDropdown user={user as any} />
             ) : (
               <div className="flex items-center gap-2">
                 <Link
